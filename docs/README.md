@@ -17,6 +17,11 @@ I decided to start with stuff segmentation, as when converting from object
 segmentation to panoptic segmentation, one should be careful about overlaps
 (see [1]) and this includes additional complexity.
 
+## Dependencies
+
+1. [Anaconda](https://www.anaconda.com/download/)
+1. [Perl Interpreter](https://www.perl.org/get.html)
+
 ## References
 
 1. [panoptic segmentation paper](https://arxiv.org/abs/1801.00868)

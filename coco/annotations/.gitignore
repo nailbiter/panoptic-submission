@@ -1,0 +1,7 @@
+__MACOSX/
+panoptic_train2017/
+panoptic_val2017/
+#panoptic_coco_categories.json
+panoptic_train2017.json
+panoptic_val2017.json
+semantic_segmentation.json
