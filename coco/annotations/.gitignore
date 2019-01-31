@@ -5,3 +5,4 @@ panoptic_val2017/
 panoptic_train2017.json
 panoptic_val2017.json
 semantic_segmentation.json
+semantic_segmentation_pngs/
