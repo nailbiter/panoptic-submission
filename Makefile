@@ -1,7 +1,8 @@
 .PHONY: all test convert_json docs setup
 
 #commands
-PYTHON=~/anaconda2/bin/python2
+PYTHON=~/anaconda3/bin/python3
+PYTHON2=~/anaconda2/bin/python2
 #variables
 SEMANTIC_SEGMENTATION_JSON=./coco/annotations/semantic_segmentation.json
 PANOPTIC2SEMANTIC_SEGMENTATION=./converters/panoptic2semantic_segmentation.py
@@ -23,7 +24,7 @@ setup:
 #universal rules
 #non-universal rules
 $(SEMANTIC_SEGMENTATION_JSON): 
-	$(PYTHON) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
+	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
 		--input_json_file $(INPUT_JSON_FILE)\
 		--output_json_file $(SEMANTIC_SEGMENTATION_JSON) \
 		--categories_json_file $(CATEGORIES_JSON_FILE)\
