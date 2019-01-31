@@ -1,0 +1,16 @@
+DIRS=\
+	train\
+	train_labels\
+	val\
+	val_labels\
+	test\
+	test_labels
+test2: $(CLASS_DICT) $(addsuffix /.gitignore,$(addprefix coco/,$(DIRS)))
+coco/train_labels/.gitignore: $(INPUT_JSON_FILE)
+	mkdir -p $(dir $@)
+	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
+		--input_json_file $<\
+	  	--semantic_seg_folder $(dir $@)\
+		--categories_json_file $(CATEGORIES_JSON_FILE)\
+		2>log/$(notdir $(basename $(SEMANTIC_SEGMENTATION_JSON))).log.txt
+	echo '*.png' > $@
