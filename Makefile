@@ -1,7 +1,7 @@
 .PHONY: all test convert_json docs setup
 
 #commands
-PYTHON=~/anaconda3/bin/python3
+PYTHON=~/anaconda2/bin/python2
 #variables
 SEMANTIC_SEGMENTATION_JSON=./coco/annotations/semantic_segmentation.json
 PANOPTIC2SEMANTIC_SEGMENTATION=./converters/panoptic2semantic_segmentation.py
