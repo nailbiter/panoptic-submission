@@ -10,10 +10,10 @@ INPUT_JSON_FILE=./coco/annotations/panoptic_train2017.json
 CATEGORIES_JSON_FILE=./coco/annotations/panoptic_coco_categories.json
 
 #phony target rules
-all: convert_json
+all: test
 test:
 	./pl/view_json.pl \
-		--cmds misc/view_json.txt \
+		--log log/view_json.log.txt\
 		--json $(SEMANTIC_SEGMENTATION_JSON)
 convert_json: $(SEMANTIC_SEGMENTATION_JSON)
 docs:
