@@ -1,3 +1,9 @@
+VAL_INPUT_JSON_FILE=./coco/annotations/panoptic_val2017.json
+TRAIN_INPUT_JSON_FILE=./coco/annotations/panoptic_train2017.json
+
+#train parameters
+CROP_SIZE=64
+
 DIRS=\
 	train\
 	train_labels\
@@ -6,7 +12,12 @@ DIRS=\
 	test\
 	test_labels
 test2: $(CLASS_DICT) $(addsuffix /.gitignore,$(addprefix coco/,$(DIRS)))
-coco/train_labels/.gitignore: $(INPUT_JSON_FILE)
+	$(PYTHON) train.py\
+		--num_epochs 1\
+		--crop_height $(CROP_SIZE)\
+		--crop_width  $(CROP_SIZE)\
+		--dataset coco 2>&1 | tee log/train.log.txt
+coco/train_labels/.gitignore: $(TRAIN_INPUT_JSON_FILE)
 	mkdir -p $(dir $@)
 	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
 		--input_json_file $<\
@@ -14,3 +25,26 @@ coco/train_labels/.gitignore: $(INPUT_JSON_FILE)
 		--categories_json_file $(CATEGORIES_JSON_FILE)\
 		2>log/$(notdir $(basename $(SEMANTIC_SEGMENTATION_JSON))).log.txt
 	echo '*.png' > $@
+coco/val_labels/.gitignore: $(VAL_INPUT_JSON_FILE)
+	mkdir -p $(dir $@)
+	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
+		--input_json_file $<\
+	  	--semantic_seg_folder $(dir $@)\
+		--categories_json_file $(CATEGORIES_JSON_FILE)\
+		2>log/$(notdir $(basename $(SEMANTIC_SEGMENTATION_JSON))).log.txt
+	echo '*.png' > $@
+coco/test_labels/.gitignore:
+	mkdir -p $(dir $@)
+	touch $@
+coco/test/.gitignore: coco/jpgs/test/.gitignore
+	mkdir -p $(dir $@)
+	time ./pl/imageconverter.pl --from $(dir $<) --to $(dir $@) --mode JPGTOPNG
+	echo '*.png' > $@
+coco/val/.gitignore: coco/jpgs/val/.gitignore pl/imageconverter.pl
+	mkdir -p $(dir $@)
+	time ./pl/imageconverter.pl --from $(dir $<) --to $(dir $@) --mode JPGTOPNG
+	echo '*.png' > $@
+coco/train/.gitignore: coco/jpgs/train/.gitignore
+	mkdir -p $(dir $@)
+	time ./pl/imageconverter.pl --from $(dir $<) --to $(dir $@) --mode JPGTOPNG
+	#echo '*.png' > $@

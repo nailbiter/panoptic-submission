@@ -160,6 +160,7 @@ for epoch in range(args.epoch_start_i, args.num_epochs):
     id_list = np.random.permutation(len(train_input_names))
 
     num_iters = int(np.floor(len(id_list) / args.batch_size))
+    print("num_iters: {}".format(num_iters));
     st = time.time()
     epoch_st=time.time()
     for i in range(num_iters):

@@ -42,8 +42,13 @@ def prepare_data(dataset_dir):
     return train_input_names,train_output_names, val_input_names, val_output_names, test_input_names, test_output_names
 
 def load_image(path):
-    image = cv2.cvtColor(cv2.imread(path,-1), cv2.COLOR_BGR2RGB)
-    return image
+    image = cv2.imread(path,-1);
+    #print("image: {}, shape={}".format(path,image.shape));
+    if( len(image.shape) == 2):
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB);
+    else:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB);
+    return image;
 
 # Takes an absolute file path and returns the name of the file without th extension
 def filepath_to_name(full_name):

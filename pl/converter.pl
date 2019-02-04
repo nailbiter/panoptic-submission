@@ -50,9 +50,12 @@ $CONVERTERS{SEGTOCSV} = sub {
 #		printf("%s\n",Dumper($_));
 		printf("%s,%d, %d, %d\n",
 			$_->{name},
-			$_->{color}->[0],
-			$_->{color}->[1],
-			$_->{color}->[2]
+#			$_->{color}->[0],
+#			$_->{color}->[1],
+#			$_->{color}->[2],
+			$_->{id},
+			$_->{id},
+			$_->{id},
 		);
 	}
 };

@@ -1,4 +1,8 @@
 class_dict.csv
+train/.gitignore
+test/.gitignore
+val/.gitignore
 train_labels/.gitignore
 test_labels/.gitignore
 val_labels/.gitignore
+jpgs/
