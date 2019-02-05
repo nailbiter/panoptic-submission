@@ -6,3 +6,4 @@ train_labels/.gitignore
 test_labels/.gitignore
 val_labels/.gitignore
 jpgs/
+pngs/

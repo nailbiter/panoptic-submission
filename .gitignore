@@ -18,3 +18,5 @@ tfrecords.py
 *.swp
 *.swo
 log/
+train_params.val.json
+train_params.train.json

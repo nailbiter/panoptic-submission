@@ -2,7 +2,7 @@ VAL_INPUT_JSON_FILE=./coco/annotations/panoptic_val2017.json
 TRAIN_INPUT_JSON_FILE=./coco/annotations/panoptic_train2017.json
 
 #train parameters
-CROP_SIZE=64
+CROP_SIZE=32
 
 DIRS=\
 	train\
@@ -11,12 +11,16 @@ DIRS=\
 	val_labels\
 	test\
 	test_labels
-test2: $(CLASS_DICT) $(addsuffix /.gitignore,$(addprefix coco/,$(DIRS)))
+test2: $(CLASS_DICT) train_params.val.json train_params.train.json #$(addsuffix /.gitignore,$(addprefix coco/,$(DIRS))) 
 	$(PYTHON) train.py\
 		--num_epochs 1\
 		--crop_height $(CROP_SIZE)\
 		--crop_width  $(CROP_SIZE)\
 		--dataset coco 2>&1 | tee log/train.log.txt
+train_params.train.json: pl/get_image_size.pl #$(addsuffix /.gitignore,$(addprefix coco/,$(DIRS)))
+	./$< coco/jpgs/train > $@ 2> log/train_params.log.txt
+train_params.val.json: pl/get_image_size.pl #$(addsuffix /.gitignore,$(addprefix coco/,$(DIRS)))
+	./$< coco/jpgs/val > $@ 2> log/train_params.log.txt
 coco/train_labels/.gitignore: $(TRAIN_INPUT_JSON_FILE)
 	mkdir -p $(dir $@)
 	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
