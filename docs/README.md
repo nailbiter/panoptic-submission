@@ -17,6 +17,10 @@ I decided to start with stuff segmentation, as when converting from object
 segmentation to panoptic segmentation, one should be careful about overlaps
 (see [1]) and this includes additional complexity.
 
+## Usage
+
+1. Satisfy all of the *Dependencies* (see next Section);
+
 ## Dependencies
 
 1. [Anaconda](https://www.anaconda.com/download/)

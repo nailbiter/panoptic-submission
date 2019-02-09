@@ -7,3 +7,4 @@ test_labels/.gitignore
 val_labels/.gitignore
 jpgs/
 pngs/
+train_full
