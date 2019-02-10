@@ -8,11 +8,14 @@ from builders import model_builder
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--image', type=str, default=None, required=True, help='The image you want to predict on. ')
+parser.add_argument('--outdir', type=str, default='.', required=False, help='The directory to write output file to')
 parser.add_argument('--checkpoint_path', type=str, default=None, required=True, help='The path to the latest checkpoint weights for your model.')
 parser.add_argument('--crop_height', type=int, default=512, help='Height of cropped input image to network')
 parser.add_argument('--crop_width', type=int, default=512, help='Width of cropped input image to network')
-parser.add_argument('--model', type=str, default=None, required=True, help='The model you are using')
+parser.add_argument('--model', type=str, default="FC-DenseNet56", required=False, help='The model you are using')
 parser.add_argument('--dataset', type=str, default="CamVid", required=False, help='The dataset you are using')
+parser.add_argument('--out_height', type=int,default=0, help='Height of output image');
+parser.add_argument('--out_width', type=int, default=0,help='Height of output image');
 args = parser.parse_args()
 
 class_names_list, label_values = helpers.get_label_info(os.path.join(args.dataset, "class_dict.csv"))
@@ -48,24 +51,33 @@ saver=tf.train.Saver(max_to_keep=1000)
 saver.restore(sess, args.checkpoint_path)
 
 
-print("Testing image " + args.image)
+imagelist = [];
+if( args.image[-3:] == "txt" ):
+    with open(args.image) as f:
+        imagelist = f.readlines();
+        imagelist = [x.strip() for x in imagelist];
+else:
+    imagelist = (args.image);
 
-loaded_image = utils.load_image(args.image)
-resized_image =cv2.resize(loaded_image, (args.crop_width, args.crop_height))
-input_image = np.expand_dims(np.float32(resized_image[:args.crop_height, :args.crop_width]),axis=0)/255.0
+for imagename in imagelist:
+    print("Testing image " + imagename)
 
-st = time.time()
-output_image = sess.run(network,feed_dict={net_input:input_image})
+    loaded_image = utils.load_image(imagename)
+    resized_image =cv2.resize(loaded_image, (args.crop_width, args.crop_height))
+    input_image = np.expand_dims(np.float32(resized_image[:args.crop_height, :args.crop_width]),axis=0)/255.0
 
-run_time = time.time()-st
+    st = time.time()
+    output_image = sess.run(network,feed_dict={net_input:input_image})
 
-output_image = np.array(output_image[0,:,:,:])
-output_image = helpers.reverse_one_hot(output_image)
+    run_time = time.time()-st
 
-out_vis_image = helpers.colour_code_segmentation(output_image, label_values)
-file_name = utils.filepath_to_name(args.image)
-cv2.imwrite("%s_pred.png"%(file_name),cv2.cvtColor(np.uint8(out_vis_image), cv2.COLOR_RGB2BGR))
+    output_image = np.array(output_image[0,:,:,:])
+    output_image = helpers.reverse_one_hot(output_image)
 
-print("")
-print("Finished!")
-print("Wrote image " + "%s_pred.png"%(file_name))
+    out_vis_image = helpers.colour_code_segmentation(output_image, label_values)
+    file_name = utils.filepath_to_name(imagename)
+    cv2.imwrite("%s/%s_pred.png"%(args.outdir,file_name),cv2.cvtColor(np.uint8(out_vis_image), cv2.COLOR_RGB2BGR));
+
+    print("")
+    print("Finished!")
+    print("Wrote image " + "%s_pred.png"%(file_name))

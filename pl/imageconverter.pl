@@ -31,18 +31,34 @@ use Parallel::Loops;
 #global const's
 my %CONVERTERS = (
 	JPGTOPNG=> '',
+	RESIZE=> '',
 );
 my $PROCESSNUM = 4;
+#global var's
+my $Testflag = 0;
 #procedures
+sub myExec{
+	(my $cmd) = @_;
+	printf("exec: _%s\n",$cmd);
+	if(not $Testflag){
+		system($cmd);
+	}
+}
 sub parseCommandLine{
 	(my $cmdline, my @arguments) = @_;
 	my %args;
 	for(@arguments){
-		$args{$_.'=s'} = \$$cmdline{$_};
+		my $fullkey = $_;
+		(my $key) = split('=',$fullkey);
+		$args{$fullkey} = \$$cmdline{$key};
 	}
 	GetOptions(
 		%args,
 	);
+}
+$CONVERTERS{RESIZE} = sub {
+	my %cmdline = @_;
+	(my $from, my $to) = @cmdline{'from','to'};
 }
 $CONVERTERS{JPGTOPNG} = sub {
 	my %cmdline = @_;
@@ -87,7 +103,7 @@ sub createShares{
 
 #main
 my %cmdline;
-parseCommandLine(\%cmdline,'from','to','mode');
+parseCommandLine(\%cmdline,'from=s','to=s','mode=s');
 for(keys %CONVERTERS){
 	if( $_ eq $cmdline{mode} ) {
 		$CONVERTERS{$_}->(%cmdline);

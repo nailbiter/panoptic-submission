@@ -11,7 +11,37 @@ DIRS=\
 	val_labels\
 	test\
 	test_labels
-test2: $(CLASS_DICT) train_params.val.json train_params.train.json #$(addsuffix /.gitignore,$(addprefix coco/,$(DIRS))) 
+
+#phony targets
+test: coco/flags/predict.txt coco/flags/resize.txt
+	#mkdir -p coco/test_out
+	#./$(PERLDIR)/test.pl --python $(PYTHON) \
+		--start 37\
+		--outdir coco/test_out\
+		--extension jpg\
+		--testfolder coco/val 2>log/test.log.txt
+	#$(PYTHON) test.py\
+		--dataset coco\
+		--checkpoint_path \
+			checkpoints/latest_model_FC-DenseNet56_coco.ckpt\
+		--crop_height $(CROP_SIZE)\
+		--crop_width $(CROP_SIZE)\
+		2>log/test.log.txt
+coco/flags/resize.txt: $(PERLDIR)/imageconverter.pl
+	./$(PERLDIR)/imageconverter.pl --from coco/test_out --to coco/test_resized \
+		--mode RESIZE
+	touch $@
+coco/flags/predict.txt:coco/test.txt coco/predict_list.txt
+	$(PYTHON) predict.py \
+		--checkpoint_path \
+			checkpoints/latest_model_FC-DenseNet56_coco.ckpt\
+		--dataset coco\
+		--outdir coco/test_out\
+		--image coco/predict_list.txt 2>log/predict.log.txt
+	touch $@
+coco/predict_list.txt: coco/val.txt
+	find coco/val|grep jpg > $@
+train: $(CLASS_DICT) train_params.val.json train_params.train.json coco/train.txt coco/train_labels.txt #$(addsuffix /.gitignore,$(addprefix coco/,$(DIRS))) 
 	$(PYTHON) train.py\
 		--num_epochs 1\
 		--crop_height $(CROP_SIZE)\
@@ -21,14 +51,6 @@ train_params.train.json: pl/get_image_size.pl #$(addsuffix /.gitignore,$(addpref
 	./$< coco/jpgs/train > $@ 2> log/train_params.log.txt
 train_params.val.json: pl/get_image_size.pl #$(addsuffix /.gitignore,$(addprefix coco/,$(DIRS)))
 	./$< coco/jpgs/val > $@ 2> log/train_params.log.txt
-coco/train_labels/.gitignore: $(TRAIN_INPUT_JSON_FILE)
-	mkdir -p $(dir $@)
-	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
-		--input_json_file $<\
-	  	--semantic_seg_folder $(dir $@)\
-		--categories_json_file $(CATEGORIES_JSON_FILE)\
-		2>log/$(notdir $(basename $(SEMANTIC_SEGMENTATION_JSON))).log.txt
-	echo '*.png' > $@
 coco/val_labels/.gitignore: $(VAL_INPUT_JSON_FILE)
 	mkdir -p $(dir $@)
 	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
@@ -40,15 +62,21 @@ coco/val_labels/.gitignore: $(VAL_INPUT_JSON_FILE)
 coco/test_labels/.gitignore:
 	mkdir -p $(dir $@)
 	touch $@
-coco/test/.gitignore: coco/jpgs/test/.gitignore
+coco/train.txt: coco/train_full/.gitignore $(PERLDIR)/slicer.pl
+	rm -rf coco/train coco/train_labels
+	./$(PERLDIR)/slicer.pl --from coco/train_full --to coco/train --ext jpg \
+		--from coco/train_labels_full --to coco/train_labels --ext png \
+		--slicenum 9\
+		--testflag 0
+	touch $@
+coco/train_labels.txt: coco/train_labels_full/.gitignore
+	touch $@
+coco/train_labels_full/.gitignore: $(TRAIN_INPUT_JSON_FILE)
 	mkdir -p $(dir $@)
-	time ./pl/imageconverter.pl --from $(dir $<) --to $(dir $@) --mode JPGTOPNG
+	$(PYTHON2) $(PANOPTIC2SEMANTIC_SEGMENTATION)\
+		--input_json_file $<\
+	  	--semantic_seg_folder $(dir $@)\
+		--categories_json_file $(CATEGORIES_JSON_FILE)\
+		2>log/$(notdir $(basename $(SEMANTIC_SEGMENTATION_JSON))).log.txt
 	echo '*.png' > $@
-coco/val/.gitignore: coco/jpgs/val/.gitignore pl/imageconverter.pl
-	mkdir -p $(dir $@)
-	time ./pl/imageconverter.pl --from $(dir $<) --to $(dir $@) --mode JPGTOPNG
-	echo '*.png' > $@
-coco/train/.gitignore: coco/jpgs/train/.gitignore
-	mkdir -p $(dir $@)
-	time ./pl/imageconverter.pl --from $(dir $<) --to $(dir $@) --mode JPGTOPNG
-	#echo '*.png' > $@
+#~/anaconda3/bin/python predict.py --image coco/val/000000000285.jpg --checkpoint_path checkpoints/latest_model_FC-DenseNet56_coco.ckpt --model FC-DenseNet56  --dataset coco

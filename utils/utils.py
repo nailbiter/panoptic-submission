@@ -43,11 +43,16 @@ def prepare_data(dataset_dir):
 
 def load_image(path):
     image = cv2.imread(path,-1);
-    #print("image: {}, shape={}".format(path,image.shape));
-    if( len(image.shape) == 2):
-        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB);
-    else:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB);
+    #print("image: {}".format(path));
+    try:
+        if( len(image.shape) == 2):
+            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB);
+        else:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB);
+    except AttributeError:
+        #sys.stderr.write("could not read: {}".format(path));
+        print("could not read: {}".format(path));
+        exit(1);
     return image;
 
 # Takes an absolute file path and returns the name of the file without th extension
