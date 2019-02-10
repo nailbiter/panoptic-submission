@@ -29,8 +29,8 @@ test: coco/flags/predict.txt coco/flags/resize.txt
 		2>log/test.log.txt
 coco/flags/resize.txt: $(PERLDIR)/imageconverter.pl
 	./$(PERLDIR)/imageconverter.pl --from coco/test_out --to coco/test_resized \
-		--mode RESIZE
-	touch $@
+		--mode RESIZE --refdir coco/val_labels
+	#touch $@
 coco/flags/predict.txt:coco/test.txt coco/predict_list.txt
 	$(PYTHON) predict.py \
 		--checkpoint_path \

@@ -26,9 +26,14 @@ use File::Basename;
 use Data::Dumper;
 use List::Util qw[min max];
 use Parallel::Loops;
+use File::Basename;
+use Image::Size;
+use Image::Resize;
 
 
 #global const's
+my $EXTENSION = 'png';
+my $SUFFLEN = 5;
 my %CONVERTERS = (
 	JPGTOPNG=> '',
 	RESIZE=> '',
@@ -59,7 +64,31 @@ sub parseCommandLine{
 $CONVERTERS{RESIZE} = sub {
 	my %cmdline = @_;
 	(my $from, my $to) = @cmdline{'from','to'};
-}
+	myExec(sprintf("mkdir -p %s",$to));
+	opendir(DH, $from);
+	my @files = readdir(DH);
+	closedir(DH);
+	for(@files) {
+		if( $_ !~ /.$EXTENSION$/ ){
+			next;
+		}
+		my $filename = $_;
+		(my $base,my $dir, my $ext) = fileparse($filename,qr/\.[^.]*/);
+		printf("base: %s\n",$base);
+		my $base_without_suffix = substr($base,0,length($base)-$SUFFLEN);
+		printf("base_without_suffix: %s\n",$base_without_suffix);
+		(my $height,my $width) = imgsize(sprintf("%s/%s.%s",
+				$cmdline{refdir},$base_without_suffix,$EXTENSION));
+		printf("h: %d, w: %d\n",$height,$width);
+		my $image = Image::Resize->new(sprintf("%s/%s.%s",
+				$from,$base,$EXTENSION));
+		my $outfullname = sprintf("%s/%s.%s",$to,$base_without_suffix,$EXTENSION);
+		my $gd = $image->resize($width, $height,0);
+		open(FH, '>'.$outfullname);
+		print FH $gd->png();
+		close(FH);
+	}
+};
 $CONVERTERS{JPGTOPNG} = sub {
 	my %cmdline = @_;
 	(my $from, my $to) = @cmdline{'from','to'};
@@ -103,7 +132,10 @@ sub createShares{
 
 #main
 my %cmdline;
-parseCommandLine(\%cmdline,'from=s','to=s','mode=s');
+parseCommandLine(\%cmdline,'from=s','to=s','mode=s','refdir=s','testflag=n');
+$cmdline{testflag} //= 0;
+
+$Testflag = $cmdline{testflag};
 for(keys %CONVERTERS){
 	if( $_ eq $cmdline{mode} ) {
 		$CONVERTERS{$_}->(%cmdline);
