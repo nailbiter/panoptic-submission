@@ -10,6 +10,7 @@ CATEGORIES_JSON_FILE=./coco/annotations/panoptic_coco_categories.json
 SEMANTIC_SEG_FOLDER=coco/annotations/semantic_segmentation_pngs
 CLASS_DICT=coco/class_dict.csv
 PERLDIR=pl
+PYDIR=py
 
 #phony target rules
 include Makefile.main

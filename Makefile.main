@@ -13,13 +13,7 @@ DIRS=\
 	test_labels
 
 #phony targets
-test: coco/flags/predict.txt coco/flags/resize.txt
-	#mkdir -p coco/test_out
-	#./$(PERLDIR)/test.pl --python $(PYTHON) \
-		--start 37\
-		--outdir coco/test_out\
-		--extension jpg\
-		--testfolder coco/val 2>log/test.log.txt
+test: coco/flags/predict.txt coco/flags/resize.txt coco/flags/totwochan.txt
 	#$(PYTHON) test.py\
 		--dataset coco\
 		--checkpoint_path \
@@ -27,11 +21,16 @@ test: coco/flags/predict.txt coco/flags/resize.txt
 		--crop_height $(CROP_SIZE)\
 		--crop_width $(CROP_SIZE)\
 		2>log/test.log.txt
+coco/flags/totwochan.txt: $(PYDIR)/imageconverter.py
+	$(PYTHON) $< --mode TOTWOCHAN --from coco/test_resized --to coco/test_twochan \
+		2>&1 | tee log/totwochan.log.txt
+	#touch #@
 coco/flags/resize.txt: $(PERLDIR)/imageconverter.pl
 	./$(PERLDIR)/imageconverter.pl --from coco/test_out --to coco/test_resized \
 		--mode RESIZE --refdir coco/val_labels
-	#touch $@
+	touch $@
 coco/flags/predict.txt:coco/test.txt coco/predict_list.txt
+	mkdir -p coco/test_out
 	$(PYTHON) predict.py \
 		--checkpoint_path \
 			checkpoints/latest_model_FC-DenseNet56_coco.ckpt\
