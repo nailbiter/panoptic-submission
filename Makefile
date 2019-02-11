@@ -1,4 +1,7 @@
-.PHONY: all test docs setup train #convert_json
+.PHONY: all \
+	docs \
+	setup \
+	train test submit
 
 #commands
 PYTHON=~/anaconda3/bin/python3
@@ -15,11 +18,9 @@ PYDIR=py
 #phony target rules
 include Makefile.main
 all: test #train
-#test:
-#	./pl/view_json.pl \
-#		--log log/view_json.log.txt\
-#		--json $(SEMANTIC_SEGMENTATION_JSON)
-convert_json: $(SEMANTIC_SEGMENTATION_JSON)
+submit:
+	make -C submission/ 
+#convert_json: $(SEMANTIC_SEGMENTATION_JSON)
 docs:
 	make -C docs/
 setup:

@@ -22,9 +22,10 @@ test: $(addprefix $(FLAGDIR)/,$(addsuffix .txt,predict resize totwochan))
 	$(PYTHON) converters/2channels2panoptic_coco_format.py \
 		--source_folder $(TMP)/test_twochan \
 		--images_json_file $(TMP)/annotations/panoptic_val2017.json \
+		--categories_json_file $(CATEGORIES_JSON_FILE) \
 		--segmentations_folder $(TMP)/val \
-		--categories_json_file $(CATEGORIES_JSON_FILE)
-		--predictions_json_file $(TMP)/val.json 
+		--predictions_json_file $(TMP)/val.json \
+	       	2>&1 | tee log/converter2chan.log.txt
 $(FLAGDIR)/totwochan.txt: $(PYDIR)/imageconverter.py
 	$(PYTHON) $< --mode TOTWOCHAN --from $(TMP)/test_resized --to $(TMP)/test_twochan \
 		--industrious \
