@@ -29,6 +29,7 @@ use Parallel::Loops;
 use File::Basename;
 use Image::Size;
 use Image::Resize;
+use GD;
 
 
 #global const's
@@ -37,6 +38,7 @@ my $SUFFLEN = 5;
 my %CONVERTERS = (
 	JPGTOPNG=> '',
 	RESIZE=> '',
+	RESIZE2=>'',
 );
 my $PROCESSNUM = 4;
 #global var's
@@ -61,6 +63,61 @@ sub parseCommandLine{
 		%args,
 	);
 }
+sub getFileList{
+	(my $from) = @_;
+	my @files;
+	if( $from =~ /\.png$/ ) {
+		@files = ($from);
+	} else {
+		opendir(DH, $from);
+		my @filess = readdir(DH);
+		closedir(DH);
+		for(@filess) {
+			if( /.$EXTENSION$/ ){
+				push (@files, sprintf("%s/%s",$from,$_));
+			}
+		}
+	}
+	return @files;
+}
+sub getOutFileName{
+	(my $to,my $filename) = @_;
+	if( $to =~ /\.png$/ ) {
+		return $to;
+	} else {
+		myExec(sprintf("mkdir -p %s",$to));
+		return sprintf("%s/%s",$to,$filename);
+	}
+}
+$CONVERTERS{RESIZE2} = sub {
+	my %cmdline = @_;
+	(my $from, my $to) = @cmdline{'from','to'};
+	my @files = getFileList($from);
+	for(@files) {
+		printf("file: %s\n",$_);
+		my $filename = $_;
+		(my $base,my $dir, my $ext) = fileparse($filename,qr/\.[^.]*/);
+		printf("base: %s\n",$base);
+		my $base_without_suffix = substr($base,0,length($base)-$SUFFLEN);
+		printf("base_without_suffix: %s\n",$base_without_suffix);
+		(my $height,my $width) = imgsize(sprintf("%s/%s.%s",
+				$cmdline{refdir},$base_without_suffix,$EXTENSION));
+		printf("h: %d, w: %d\n",$height,$width);
+		my $fname = $filename;
+		my $image = new GD::Image($fname);
+		my %origSize;
+		($origSize{height},$origSize{width}) = imgsize($fname);
+		my $outfullname = 
+			getOutFileName($to,sprintf("%s.%s",$base_without_suffix,$EXTENSION));
+		printf("%s\n",Dumper(\%origSize));
+		my $gd = GD::Image->new($width,$height);
+		$gd->copyResized($image,0,0,0,0,$width,$height,$origSize{width},$origSize{height});
+		open(FH, '>'.$outfullname);
+		print FH $gd->png();
+		close(FH);
+		printf("saved %s\n",$outfullname);
+	}
+};
 $CONVERTERS{RESIZE} = sub {
 	my %cmdline = @_;
 	(my $from, my $to) = @cmdline{'from','to'};

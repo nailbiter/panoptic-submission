@@ -5,8 +5,6 @@ val/.gitignore
 train_labels/.gitignore
 test_labels/.gitignore
 val_labels/.gitignore
-jpgs/
-pngs/
 train_full/
 train_labels_full/
 train_labels/
@@ -21,10 +19,7 @@ test_labels.txt
 train.txt
 val.txt
 test.txt
-predict.txt
 predict_list.txt
-test_out/
 test_old/
 test_out_old/
-flags/
-test_resized/
+tmp/

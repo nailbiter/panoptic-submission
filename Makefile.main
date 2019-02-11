@@ -1,9 +1,9 @@
-VAL_INPUT_JSON_FILE=./coco/annotations/panoptic_val2017.json
-TRAIN_INPUT_JSON_FILE=./coco/annotations/panoptic_train2017.json
-
 #train parameters
 CROP_SIZE=32
 
+#vars
+VAL_INPUT_JSON_FILE=./coco/annotations/panoptic_val2017.json
+TRAIN_INPUT_JSON_FILE=./coco/annotations/panoptic_train2017.json
 DIRS=\
 	train\
 	train_labels\
@@ -11,25 +11,30 @@ DIRS=\
 	val_labels\
 	test\
 	test_labels
+TMP=coco/tmp
+FLAGDIR=$(TMP)/flags
+ANNOTATIONS=$(TMP)/annotations
+CATEGORIES_JSON_FILE=$(ANNOTATIONS)/panoptic_coco_categories.json
 
 #phony targets
-test: coco/flags/predict.txt coco/flags/resize.txt coco/flags/totwochan.txt
-	#$(PYTHON) test.py\
-		--dataset coco\
-		--checkpoint_path \
-			checkpoints/latest_model_FC-DenseNet56_coco.ckpt\
-		--crop_height $(CROP_SIZE)\
-		--crop_width $(CROP_SIZE)\
-		2>log/test.log.txt
-coco/flags/totwochan.txt: $(PYDIR)/imageconverter.py
-	$(PYTHON) $< --mode TOTWOCHAN --from coco/test_resized --to coco/test_twochan \
+test: $(addprefix $(FLAGDIR)/,$(addsuffix .txt,predict resize totwochan))
+	mkdir -p $(TMP)/val
+	$(PYTHON) converters/2channels2panoptic_coco_format.py \
+		--source_folder $(TMP)/test_twochan \
+		--images_json_file $(TMP)/annotations/panoptic_val2017.json \
+		--segmentations_folder $(TMP)/val \
+		--categories_json_file $(CATEGORIES_JSON_FILE)
+		--predictions_json_file $(TMP)/val.json 
+$(FLAGDIR)/totwochan.txt: $(PYDIR)/imageconverter.py
+	$(PYTHON) $< --mode TOTWOCHAN --from $(TMP)/test_resized --to $(TMP)/test_twochan \
+		--industrious \
 		2>&1 | tee log/totwochan.log.txt
-	#touch #@
-coco/flags/resize.txt: $(PERLDIR)/imageconverter.pl
-	./$(PERLDIR)/imageconverter.pl --from coco/test_out --to coco/test_resized \
-		--mode RESIZE --refdir coco/val_labels
 	touch $@
-coco/flags/predict.txt:coco/test.txt coco/predict_list.txt
+$(FLAGDIR)/resize.txt: $(PERLDIR)/imageconverter.pl
+	./$(PERLDIR)/imageconverter.pl --from $(TMP)/test_out --to $(TMP)/test_resized \
+		--mode RESIZE2 --refdir coco/val_labels
+	touch $@
+$(FLAGDIR)/predict.txt:coco/test.txt coco/predict_list.txt
 	mkdir -p coco/test_out
 	$(PYTHON) predict.py \
 		--checkpoint_path \
